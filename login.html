@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Smart Parking System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="auth.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#c40018'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .login-tabs {
+            display: flex;
+            border-bottom: 2px solid #e5e5e5;
+            margin-bottom: 2rem;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            border-bottom-color: #c40018;
+            color: #c40018;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #c40018;
+            box-shadow: 0 0 0 3px rgba(196, 0, 24, 0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: #c40018;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #a00014;
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .alert-error {
+            background-color: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+        }
+
+        .alert-success {
+            background-color: #d1fae5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+        <div class="text-center mb-8">
+            <div class="bg-red-600 text-white p-3 rounded-lg inline-block mb-4">
+                <i class="fas fa-car text-2xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Smart Parking</h1>
+            <p class="text-gray-600">Egyptian Chinese University</p>
+        </div>
+
+        <!-- Login Tabs -->
+        <div class="login-tabs">
+            <div class="tab active" onclick="switchTab('user')">
+                <i class="fas fa-user mr-2"></i>User Login
+            </div>
+            <div class="tab" onclick="switchTab('admin')">
+                <i class="fas fa-cog mr-2"></i>Admin Login
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div id="alertMessage" class="alert"></div>
+
+        <!-- User Login Form -->
+        <div id="user-tab" class="tab-content active">
+            <form id="userLoginForm" class="space-y-6">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">University Email</label>
+                    <input type="email" id="userEmail" class="form-input" placeholder="your.email@ecu.edu.eg" required>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Password</label>
+                    <input type="password" id="userPassword" class="form-input" placeholder="Enter your password"
+                        required>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center">
+                        <input type="checkbox" class="rounded text-red-600 focus:ring-red-500">
+                        <span class="ml-2 text-gray-700">Remember me</span>
+                    </label>
+                    <a href="#" class="text-red-600 hover:underline text-sm">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full text-lg py-3">
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                    Sign In as User
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-gray-600">
+                    Don't have an account?
+                    <a href="register.html" class="text-red-600 font-semibold hover:underline">Register here</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Admin Login Form -->
+        <div id="admin-tab" class="tab-content">
+            <form id="adminLoginForm" class="space-y-6">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Admin Email</label>
+                    <input type="email" id="adminEmail" class="form-input" placeholder="admin@ecu.edu.eg" required>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Password</label>
+                    <input type="password" id="adminPassword" class="form-input" placeholder="Enter admin password"
+                        required>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full text-lg py-3">
+                    <i class="fas fa-lock mr-2"></i>
+                    Sign In as Admin
+                </button>
+            </form>
+
+            <div class="mt-6 p-4 bg-yellow-50 rounded-lg">
+                <p class="text-sm text-yellow-800 text-center">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    Admin access is restricted to authorized personnel only.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            // Update tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            document.querySelector(`.tab:nth-child(${tab === 'user' ? 1 : 2})`).classList.add('active');
+            document.getElementById(`${tab}-tab`).classList.add('active');
+
+            // Clear forms and alerts
+            document.getElementById('alertMessage').style.display = 'none';
+            document.getElementById('userLoginForm').reset();
+            document.getElementById('adminLoginForm').reset();
+        }
+
+        function showAlert(message, type = 'error') {
+            const alert = document.getElementById('alertMessage');
+            alert.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'block';
+        }
+
+        // User Login
+        document.getElementById('userLoginForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const email = document.getElementById('userEmail').value;
+            const password = document.getElementById('userPassword').value;
+
+            const result = auth.login(email, password, false);
+            if (result.success) {
+                showAlert('Login successful! Redirecting...', 'success');
+                setTimeout(() => {
+                    window.location.href = 'user-dashboard.html';
+                }, 1000);
+            } else {
+                showAlert(result.message);
+            }
+        });
+
+        // Admin Login
+        document.getElementById('adminLoginForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+
+            const result = auth.login(email, password, true);
+            if (result.success) {
+                showAlert('Admin login successful! Redirecting...', 'success');
+                setTimeout(() => {
+                    window.location.href = 'admin-dashboard.html';
+                }, 1000);
+            } else {
+                showAlert(result.message);
+            }
+        });
+
+        // Check if already logged in
+        if (auth.checkLoginStatus()) {
+            if (auth.isAdmin) {
+                window.location.href = 'admin-dashboard.html';
+            } else {
+                window.location.href = 'user-dashboard.html';
+            }
+        }
+    </script>
+</body>
+
+</html>

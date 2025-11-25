@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Smart Parking</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="auth.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#c40018'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Check User Access -->
+    <script>
+        if (!auth.checkLoginStatus() || auth.isAdmin) {
+            window.location.href = 'login.html';
+        }
+    </script>
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <a href="index.html" class="flex items-center gap-3">
+                    <div class="bg-red-600 text-white p-2 rounded-lg">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <span class="text-xl font-bold">Smart Parking</span>
+                </a>
+                <div class="flex items-center gap-4">
+                    <a href="index.html" class="text-gray-700 hover:text-red-600">Home</a>
+                    <a href="user-dashboard.html" class="text-gray-700 hover:text-red-600">Dashboard</a>
+                    <a href="map.html" class="text-gray-700 hover:text-red-600">Parking Map</a>
+                    <a href="profile.html" class="text-red-600 font-semibold">My Profile</a>
+                    <button onclick="auth.logout()" class="text-gray-700 hover:text-red-600">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center gap-6 mb-8">
+                    <div
+                        class="bg-red-100 text-red-600 w-20 h-20 rounded-full flex items-center justify-center text-2xl">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-800" id="profileName">User Name</h1>
+                        <p class="text-gray-600" id="profileEmail">user@ecu.edu.eg</p>
+                        <div class="flex items-center gap-2 mt-2">
+                            <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">Active</span>
+                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+                                id="userType">Student</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h2 class="text-xl font-bold mb-4">Personal Information</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-gray-600 text-sm">Full Name</label>
+                                <p class="font-semibold" id="infoName">-</p>
+                            </div>
+                            <div>
+                                <label class="block text-gray-600 text-sm">University Email</label>
+                                <p class="font-semibold" id="infoEmail">-</p>
+                            </div>
+                            <div>
+                                <label class="block text-gray-600 text-sm">Phone Number</label>
+                                <p class="font-semibold" id="infoPhone">-</p>
+                            </div>
+                            <div>
+                                <label class="block text-gray-600 text-sm">Member Since</label>
+                                <p class="font-semibold" id="infoSince">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h2 class="text-xl font-bold mb-4">Vehicle Information</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-gray-600 text-sm">Car Model</label>
+                                <p class="font-semibold" id="infoCarModel">-</p>
+                            </div>
+                            <div>
+                                <label class="block text-gray-600 text-sm">Plate Number</label>
+                                <p class="font-semibold" id="infoPlate">-</p>
+                            </div>
+                            <div>
+                                <label class="block text-gray-600 text-sm">Account Status</label>
+                                <p class="font-semibold" id="infoStatus">-</p>
+                            </div>
+                            <div>
+                                <label class="block text-gray-600 text-sm">Total Reservations</label>
+                                <p class="font-semibold">24</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-8 border-t">
+                    <h2 class="text-xl font-bold mb-4">Parking Statistics</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-red-50 p-4 rounded-lg text-center">
+                            <div class="text-2xl font-bold text-red-600">24</div>
+                            <div class="text-gray-600 text-sm">Total Reservations</div>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg text-center">
+                            <div class="text-2xl font-bold text-green-600">18</div>
+                            <div class="text-gray-600 text-sm">Completed</div>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-lg text-center">
+                            <div class="text-2xl font-bold text-blue-600">5</div>
+                            <div class="text-gray-600 text-sm">Active</div>
+                        </div>
+                        <div class="bg-yellow-50 p-4 rounded-lg text-center">
+                            <div class="text-2xl font-bold text-yellow-600">1</div>
+                            <div class="text-gray-600 text-sm">Cancelled</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex gap-4">
+                    <button class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition">
+                        <i class="fas fa-edit mr-2"></i>Edit Profile
+                    </button>
+                    <button class="border border-red-600 text-red-600 px-6 py-3 rounded-lg hover:bg-red-50 transition">
+                        <i class="fas fa-car mr-2"></i>Update Vehicle
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load user profile data
+        document.addEventListener('DOMContentLoaded', function () {
+            if (auth.currentUser) {
+                document.getElementById('profileName').textContent = auth.currentUser.name;
+                document.getElementById('profileEmail').textContent = auth.currentUser.email;
+                document.getElementById('infoName').textContent = auth.currentUser.name;
+                document.getElementById('infoEmail').textContent = auth.currentUser.email;
+                document.getElementById('infoPhone').textContent = auth.currentUser.phone || 'Not provided';
+                document.getElementById('infoCarModel').textContent = auth.currentUser.carModel || 'Not provided';
+                document.getElementById('infoPlate').textContent = auth.currentUser.plateNumber;
+                document.getElementById('infoStatus').textContent = auth.currentUser.status || 'Active';
+
+                const regDate = new Date(auth.currentUser.registrationDate);
+                document.getElementById('infoSince').textContent = regDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

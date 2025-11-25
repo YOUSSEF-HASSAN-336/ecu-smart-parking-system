@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking Map - Smart Parking System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="auth.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#c40018',
+                        background: '#ffffff',
+                        foreground: '#0a0a0a',
+                        muted: {
+                            DEFAULT: '#f5f5f5',
+                            foreground: '#737373'
+                        },
+                        card: {
+                            DEFAULT: '#ffffff',
+                            foreground: '#0a0a0a'
+                        },
+                        border: '#e5e5e5'
+                    },
+                    animation: {
+                        blink: 'blink 1s infinite',
+                        'draw-path': 'drawPath 3s ease-in-out forwards'
+                    },
+                    keyframes: {
+                        blink: {
+                            '0%, 50%': { opacity: '1' },
+                            '51%, 100%': { opacity: '0.3' }
+                        },
+                        drawPath: {
+                            to: { strokeDashoffset: '0' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #fafafa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-default {
+            background-color: #c40018;
+            color: white;
+            border: none;
+        }
+
+        .btn-default:hover {
+            background-color: #a00014;
+        }
+
+        .btn-ghost {
+            background-color: transparent;
+            color: #0a0a0a;
+            border: none;
+        }
+
+        .btn-ghost:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: #0a0a0a;
+            border: 1px solid #e5e5e5;
+        }
+
+        .btn-outline:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-lg {
+            padding: 0.75rem 1.5rem;
+            font-size: 1.125rem;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.5rem 1.5rem 0;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-secondary {
+            background-color: #f5f5f5;
+            color: #404040;
+        }
+
+        .badge-destructive {
+            background-color: #dc2626;
+            color: white;
+        }
+
+        .input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d4d4d4;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: #c40018;
+            box-shadow: 0 0 0 2px rgba(196, 0, 24, 0.2);
+        }
+
+        .label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .dialog-content {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .dialog-header {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .grid-cols-1 {
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+
+        .grid-cols-2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .grid-cols-4 {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .grid-cols-5 {
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+        }
+
+        @media (min-width: 768px) {
+            .md\:grid-cols-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .lg\:grid-cols-4 {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+
+            .lg\:grid-cols-5 {
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-center {
+            justify-content: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .gap-2 {
+            gap: 0.5rem;
+        }
+
+        .gap-3 {
+            gap: 0.75rem;
+        }
+
+        .gap-4 {
+            gap: 1rem;
+        }
+
+        .gap-6 {
+            gap: 1.5rem;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+        }
+
+        .text-lg {
+            font-size: 1.125rem;
+        }
+
+        .text-xl {
+            font-size: 1.25rem;
+        }
+
+        .text-2xl {
+            font-size: 1.5rem;
+        }
+
+        .text-3xl {
+            font-size: 1.875rem;
+        }
+
+        .text-5xl {
+            font-size: 3rem;
+        }
+
+        .font-bold {
+            font-weight: 700;
+        }
+
+        .font-semibold {
+            font-weight: 600;
+        }
+
+        .font-medium {
+            font-weight: 500;
+        }
+
+        .mb-2 {
+            margin-bottom: 0.5rem;
+        }
+
+        .mb-4 {
+            margin-bottom: 1rem;
+        }
+
+        .mb-6 {
+            margin-bottom: 1.5rem;
+        }
+
+        .mb-8 {
+            margin-bottom: 2rem;
+        }
+
+        .mb-12 {
+            margin-bottom: 3rem;
+        }
+
+        .mt-6 {
+            margin-top: 1.5rem;
+        }
+
+        .mt-8 {
+            margin-top: 2rem;
+        }
+
+        .mt-12 {
+            margin-top: 3rem;
+        }
+
+        .py-4 {
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+
+        .py-8 {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        .py-16 {
+            padding-top: 4rem;
+            padding-bottom: 4rem;
+        }
+
+        .py-20 {
+            padding-top: 5rem;
+            padding-bottom: 5rem;
+        }
+
+        .px-4 {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .p-3 {
+            padding: 0.75rem;
+        }
+
+        .p-6 {
+            padding: 1.5rem;
+        }
+
+        .p-12 {
+            padding: 3rem;
+        }
+
+        .size-8 {
+            width: 2rem;
+            height: 2rem;
+        }
+
+        .size-10 {
+            width: 2.5rem;
+            height: 2.5rem;
+        }
+
+        .size-12 {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        .size-16 {
+            width: 4rem;
+            height: 4rem;
+        }
+
+        .rounded {
+            border-radius: 0.25rem;
+        }
+
+        .rounded-lg {
+            border-radius: 0.5rem;
+        }
+
+        .rounded-full {
+            border-radius: 9999px;
+        }
+
+        .rounded-2xl {
+            border-radius: 1rem;
+        }
+
+        .border {
+            border-width: 1px;
+            border-color: #e5e5e5;
+        }
+
+        .border-2 {
+            border-width: 2px;
+        }
+
+        .border-b {
+            border-bottom-width: 1px;
+            border-color: #e5e5e5;
+        }
+
+        .border-t {
+            border-top-width: 1px;
+            border-color: #e5e5e5;
+        }
+
+        .bg-background {
+            background-color: #ffffff;
+        }
+
+        .bg-muted {
+            background-color: #f5f5f5;
+        }
+
+        .bg-primary {
+            background-color: #c40018;
+        }
+
+        .bg-green-100 {
+            background-color: #dcfce7;
+        }
+
+        .bg-yellow-100 {
+            background-color: #fef9c3;
+        }
+
+        .bg-red-100 {
+            background-color: #fee2e2;
+        }
+
+        .bg-green-50 {
+            background-color: #f0fdf4;
+        }
+
+        .bg-yellow-50 {
+            background-color: #fefce8;
+        }
+
+        .bg-red-50 {
+            background-color: #fef2f2;
+        }
+
+        .text-primary {
+            color: #c40018;
+        }
+
+        .text-primary-foreground {
+            color: white;
+        }
+
+        .text-muted-foreground {
+            color: #737373;
+        }
+
+        .text-green-600 {
+            color: #16a34a;
+        }
+
+        .text-green-700 {
+            color: #15803d;
+        }
+
+        .text-yellow-600 {
+            color: #ca8a04;
+        }
+
+        .text-yellow-700 {
+            color: #a16207;
+        }
+
+        .text-red-600 {
+            color: #dc2626;
+        }
+
+        .text-red-700 {
+            color: #b91c1c;
+        }
+
+        .text-green-800 {
+            color: #166534;
+        }
+
+        .text-yellow-800 {
+            color: #854d0e;
+        }
+
+        .shadow-xl {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .shadow-lg {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .transition-all {
+            transition: all 0.2s;
+        }
+
+        .transition-shadow {
+            transition: box-shadow 0.2s;
+        }
+
+        .hover\:scale-\[1\.02\]:hover {
+            transform: scale(1.02);
+        }
+
+        .hover\:shadow-lg:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .hover\:bg-\[\#a00014\]:hover {
+            background-color: #a00014;
+        }
+
+        .hover\:bg-red-50:hover {
+            background-color: #fef2f2;
+        }
+
+        .hover\:underline:hover {
+            text-decoration: underline;
+        }
+
+        .hover\:opacity-80:hover {
+            opacity: 0.8;
+        }
+
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        .cursor-not-allowed {
+            cursor: not-allowed;
+        }
+
+        .opacity-90 {
+            opacity: 0.9;
+        }
+
+        .leading-relaxed {
+            line-height: 1.625;
+        }
+
+        .max-w-md {
+            max-width: 28rem;
+        }
+
+        .max-w-3xl {
+            max-width: 48rem;
+        }
+
+        .max-w-4xl {
+            max-width: 56rem;
+        }
+
+        .max-w-6xl {
+            max-width: 72rem;
+        }
+
+        .mx-auto {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        .space-y-2>*+* {
+            margin-top: 0.5rem;
+        }
+
+        .space-y-6>*+* {
+            margin-top: 1.5rem;
+        }
+
+        .overflow-x-auto {
+            overflow-x: auto;
+        }
+
+        .backdrop-blur {
+            backdrop-filter: blur(8px);
+        }
+
+        .bg-background\/95 {
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+
+        .bg-gradient-to-br {
+            background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
+        }
+
+        .from-background {
+            --tw-gradient-from: #ffffff;
+            --tw-gradient-to: rgba(255, 255, 255, 0);
+            --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+        }
+
+        .via-background {
+            --tw-gradient-to: rgba(255, 255, 255, 0);
+            --tw-gradient-stops: var(--tw-gradient-from), #ffffff, var(--tw-gradient-to);
+        }
+
+        .to-primary\/5 {
+            --tw-gradient-to: rgba(196, 0, 24, 0.05);
+        }
+
+        .bg-muted\/50 {
+            background-color: rgba(245, 245, 245, 0.5);
+        }
+
+        .bg-primary\/10 {
+            background-color: rgba(196, 0, 24, 0.1);
+        }
+
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .5;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- الحماية - التحقق من تسجيل الدخول قبل استخدام الخريطة -->
+    <script>
+        if (!auth.checkLoginStatus() || auth.isAdmin) {
+            alert('Please login as a user to access the parking map');
+            window.location.href = 'login.html';
+        }
+    </script>
+
+    <!-- Navigation -->
+    <nav class="border-b bg-background/95 backdrop-blur">
+        <div class="container px-4 py-4">
+            <div class="flex items-center justify-between">
+                <a href="index.html" class="flex items-center gap-2">
+                    <div class="flex size-10 items-center justify-center rounded-lg bg-primary">
+                        <i class="fas fa-car text-primary-foreground"></i>
+                    </div>
+                    <span class="text-xl font-bold">Smart Parking</span>
+                </a>
+                <div class="flex items-center gap-4">
+                    <a href="index.html">
+                        <button class="btn btn-ghost">Home</button>
+                    </a>
+                    <a href="user-dashboard.html">
+                        <button class="btn btn-ghost">Dashboard</button>
+                    </a>
+                    <a href="map.html">
+                        <button class="btn btn-default">Parking Map</button>
+                    </a>
+                    <button onclick="auth.logout()" class="btn btn-ghost">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <section class="container px-4 py-8">
+        <div class="mb-8">
+            <h1 class="mb-2 text-3xl font-bold">Parking Map</h1>
+            <p class="text-muted-foreground">Real-time parking availability and navigation</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="mb-8 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+            <div class="card">
+                <div class="card-header pb-3">
+                    <p class="text-muted-foreground">Total Spots</p>
+                    <h3 class="text-3xl font-bold">20</h3>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header pb-3">
+                    <p class="text-muted-foreground">Available</p>
+                    <h3 class="text-3xl font-bold flex items-center gap-2">
+                        12
+                        <span class="badge badge-secondary bg-green-100 text-green-700">Open</span>
+                    </h3>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header pb-3">
+                    <p class="text-muted-foreground">Occupied</p>
+                    <h3 class="text-3xl font-bold flex items-center gap-2">
+                        5
+                        <span class="badge badge-secondary bg-red-100 text-red-700">Full</span>
+                    </h3>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header pb-3">
+                    <p class="text-muted-foreground">Reserved</p>
+                    <h3 class="text-3xl font-bold flex items-center gap-2">
+                        2
+                        <span class="badge badge-secondary bg-yellow-100 text-yellow-700">Hold</span>
+                    </h3>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header pb-3">
+                    <p class="text-muted-foreground">Illegal</p>
+                    <h3 class="text-3xl font-bold flex items-center gap-2">
+                        1
+                        <span class="badge badge-destructive">Alert</span>
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parking Map Component -->
+        <div id="parking-map-container">
+            <!-- Parking map will be rendered here by JavaScript -->
+        </div>
+
+        <!-- Legend -->
+        <div class="card mt-8">
+            <div class="card-header">
+                <h3 class="text-xl font-bold">Legend</h3>
+            </div>
+            <div class="card-content">
+                <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                    <div class="flex items-center gap-3">
+                        <div class="size-8 rounded border-2 border-green-500 bg-green-100"></div>
+                        <span class="text-sm font-medium">Available - Click to reserve</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="size-8 rounded border-2 border-yellow-500 bg-yellow-100"></div>
+                        <span class="text-sm font-medium">Reserved - Temporarily held</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="size-8 rounded border-2 border-red-500 bg-red-100"></div>
+                        <span class="text-sm font-medium">Occupied - Currently in use</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="size-8 animate-blink rounded border-2 border-red-600 bg-red-200"></div>
+                        <span class="text-sm font-medium">Illegal Parking - Alert</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="mt-12 border-t bg-muted/50 py-8">
+        <div class="container px-4 text-center text-sm text-muted-foreground">
+            <p>© 2025 Egyptian Chinese University - Smart Parking System</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Parking Map Component
+        document.addEventListener('DOMContentLoaded', function () {
+            const parkingMapContainer = document.getElementById('parking-map-container');
+
+            // Create parking map HTML
+            const parkingMapHTML = `
+                <div class="card">
+                    <div class="card-content p-6">
+                        <!-- Timer Display -->
+                        <div id="timer-display" class="mb-4 flex items-center justify-center gap-2 rounded-lg bg-yellow-50 p-3 text-yellow-800 border border-yellow-200 hidden">
+                            <i class="fas fa-clock text-lg animate-pulse"></i>
+                            <span class="font-semibold">Reservation expires in: <span id="timer-value">10:00</span></span>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <svg viewBox="0 0 650 550" class="mx-auto w-full max-w-4xl" style="min-width: 600px;" id="parking-svg">
+                                <!-- Entrance marker -->
+                                <g>
+                                    <rect x="20" y="20" width="60" height="60" fill="#c40018" rx="4" />
+                                    <text x="50" y="55" text-anchor="middle" fill="white" font-size="14" font-weight="bold">
+                                        ENTRY
+                                    </text>
+                                </g>
+
+                                <!-- Parking spots will be added by JavaScript -->
+                                
+                                <!-- Arrow marker definition -->
+                                <defs>
+                                    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                                        <polygon points="0 0, 10 3, 0 6" fill="#c40018" />
+                                    </marker>
+                                </defs>
+                            </svg>
+                        </div>
+
+                        <!-- Navigation Button -->
+                        <div id="navigate-button" class="mt-6 flex justify-center hidden">
+                            <button id="navigate-btn" class="btn btn-default btn-lg gap-2">
+                                <i class="fas fa-route"></i>
+                                Navigate to Your Spot (<span id="selected-spot-id"></span>)
+                            </button>
+                        </div>
+
+                        <!-- Leave Spot Button -->
+                        <div id="leave-spot-button" class="mt-6 flex justify-center hidden">
+                            <button id="leave-spot-btn" class="btn btn-outline btn-lg gap-2 border-primary text-primary hover:bg-red-50">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Leave Spot (<span id="occupied-spot-id"></span>)
+                            </button>
+                        </div>
+
+                        <!-- Navigating indicator -->
+                        <div id="navigating-indicator" class="mt-6 text-center hidden">
+                            <p class="text-lg font-semibold text-primary">Navigating to spot <span id="navigating-spot-id"></span>...</p>
+                            <p class="text-sm text-muted-foreground">Please follow the red path</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            parkingMapContainer.innerHTML = parkingMapHTML;
+
+            // Initialize parking map
+            initializeParkingMap();
+        });
+
+        // Parking Map Logic
+        function initializeParkingMap() {
+            const spots = [
+                // Row 1
+                { id: "A1", status: "available", position: { x: 100, y: 150 } },
+                { id: "A2", status: "occupied", position: { x: 200, y: 150 } },
+                { id: "A3", status: "available", position: { x: 300, y: 150 } },
+                { id: "A4", status: "available", position: { x: 400, y: 150 } },
+                { id: "A5", status: "reserved", position: { x: 500, y: 150 } },
+                // Row 2
+                { id: "B1", status: "available", position: { x: 100, y: 250 } },
+                { id: "B2", status: "available", position: { x: 200, y: 250 } },
+                { id: "B3", status: "illegal", position: { x: 300, y: 250 } },
+                { id: "B4", status: "occupied", position: { x: 400, y: 250 } },
+                { id: "B5", status: "available", position: { x: 500, y: 250 } },
+                // Row 3
+                { id: "C1", status: "available", position: { x: 100, y: 350 } },
+                { id: "C2", status: "available", position: { x: 200, y: 350 } },
+                { id: "C3", status: "occupied", position: { x: 300, y: 350 } },
+                { id: "C4", status: "available", position: { x: 400, y: 350 } },
+                { id: "C5", status: "available", position: { x: 500, y: 350 } },
+                // Row 4
+                { id: "D1", status: "occupied", position: { x: 100, y: 450 } },
+                { id: "D2", status: "available", position: { x: 200, y: 450 } },
+                { id: "D3", status: "available", position: { x: 300, y: 450 } },
+                { id: "D4", status: "reserved", position: { x: 400, y: 450 } },
+                { id: "D5", status: "occupied", position: { x: 500, y: 450 } },
+            ];
+
+            let selectedSpot = null;
+            let isNavigating = false;
+            let reservationTimeLeft = null;
+            let timerInterval = null;
+
+            const svg = document.getElementById('parking-svg');
+            const timerDisplay = document.getElementById('timer-display');
+            const timerValue = document.getElementById('timer-value');
+            const navigateButton = document.getElementById('navigate-button');
+            const navigateBtn = document.getElementById('navigate-btn');
+            const selectedSpotId = document.getElementById('selected-spot-id');
+            const leaveSpotButton = document.getElementById('leave-spot-button');
+            const leaveSpotBtn = document.getElementById('leave-spot-btn');
+            const occupiedSpotId = document.getElementById('occupied-spot-id');
+            const navigatingIndicator = document.getElementById('navigating-indicator');
+            const navigatingSpotId = document.getElementById('navigating-spot-id');
+
+            // Render parking spots
+            spots.forEach(spot => {
+                const spotGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                spotGroup.setAttribute("id", `spot-${spot.id}`);
+
+                if (spot.status === "available") {
+                    spotGroup.classList.add("cursor-pointer");
+                } else {
+                    spotGroup.classList.add("cursor-not-allowed");
+                }
+
+                const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                rect.setAttribute("x", spot.position.x - 40);
+                rect.setAttribute("y", spot.position.y - 30);
+                rect.setAttribute("width", "80");
+                rect.setAttribute("height", "60");
+                rect.setAttribute("rx", "4");
+                rect.classList.add("stroke-2", "transition-all", "hover:opacity-80");
+
+                // Set color based on status
+                switch (spot.status) {
+                    case "available":
+                        rect.classList.add("fill-green-100", "stroke-green-500");
+                        break;
+                    case "reserved":
+                        rect.classList.add("fill-yellow-100", "stroke-yellow-500");
+                        break;
+                    case "occupied":
+                        rect.classList.add("fill-red-100", "stroke-red-500");
+                        break;
+                    case "illegal":
+                        rect.classList.add("fill-red-200", "stroke-red-600", "animate-blink");
+                        break;
+                }
+
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", spot.position.x);
+                text.setAttribute("y", spot.position.y);
+                text.setAttribute("text-anchor", "middle");
+                text.setAttribute("dominant-baseline", "middle");
+                text.setAttribute("font-size", "16");
+                text.setAttribute("font-weight", "bold");
+                text.classList.add("pointer-events-none");
+                text.textContent = spot.id;
+
+                spotGroup.appendChild(rect);
+                spotGroup.appendChild(text);
+
+                // Add car icon for occupied spots
+                if (spot.status === "occupied" || spot.status === "illegal") {
+                    const carText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    carText.setAttribute("x", spot.position.x);
+                    carText.setAttribute("y", spot.position.y + 20);
+                    carText.setAttribute("text-anchor", "middle");
+                    carText.setAttribute("font-size", "20");
+                    carText.classList.add("pointer-events-none");
+                    carText.textContent = "🚗";
+                    spotGroup.appendChild(carText);
+                }
+
+                // Add click event
+                spotGroup.addEventListener('click', () => handleSpotClick(spot));
+
+                svg.appendChild(spotGroup);
+            });
+
+            // Add illegal parking alerts
+            spots.filter(s => s.status === "illegal").forEach(spot => {
+                const alertGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+                const ellipse = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+                ellipse.setAttribute("cx", spot.position.x + 50);
+                ellipse.setAttribute("cy", spot.position.y - 50);
+                ellipse.setAttribute("rx", "60");
+                ellipse.setAttribute("ry", "30");
+                ellipse.setAttribute("fill", "white");
+                ellipse.setAttribute("stroke", "#dc2626");
+                ellipse.setAttribute("stroke-width", "2");
+                ellipse.classList.add("animate-blink");
+
+                const alertText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                alertText.setAttribute("x", spot.position.x + 50);
+                alertText.setAttribute("y", spot.position.y - 45);
+                alertText.setAttribute("text-anchor", "middle");
+                alertText.setAttribute("font-size", "12");
+                alertText.setAttribute("font-weight", "bold");
+                alertText.setAttribute("fill", "#dc2626");
+                alertText.textContent = "Illegal Parking!";
+
+                alertGroup.appendChild(ellipse);
+                alertGroup.appendChild(alertText);
+
+                svg.appendChild(alertGroup);
+            });
+
+            function handleSpotClick(spot) {
+                if (spot.status === "available") {
+                    // If there's already a reserved spot, release it first
+                    if (selectedSpot && selectedSpot.status === "reserved") {
+                        updateSpotStatus(selectedSpot.id, "available");
+                    }
+
+                    // Reserve the new spot
+                    updateSpotStatus(spot.id, "reserved");
+                    selectedSpot = { ...spot, status: "reserved" };
+
+                    // حفظ الحجز للمستخدم
+                    saveUserReservation(spot.id);
+
+                    // Show timer and navigate button
+                    timerDisplay.classList.remove("hidden");
+                    navigateButton.classList.remove("hidden");
+                    selectedSpotId.textContent = spot.id;
+
+                    // Start reservation timer (10 minutes)
+                    reservationTimeLeft = 600;
+                    startTimer();
+                }
+            }
+
+            function saveUserReservation(spotId) {
+                const userReservations = JSON.parse(localStorage.getItem('userReservations')) || {};
+                userReservations[auth.currentUser.id] = {
+                    spotId: spotId,
+                    reservationTime: new Date().toISOString(),
+                    status: 'reserved'
+                };
+                localStorage.setItem('userReservations', JSON.stringify(userReservations));
+            }
+
+            function updateSpotStatus(spotId, newStatus) {
+                const spotElement = document.getElementById(`spot-${spotId}`);
+                if (!spotElement) return;
+
+                const rect = spotElement.querySelector('rect');
+                if (!rect) return;
+
+                // Remove existing color classes
+                rect.classList.remove("fill-green-100", "stroke-green-500",
+                    "fill-yellow-100", "stroke-yellow-500",
+                    "fill-red-100", "stroke-red-500",
+                    "fill-red-200", "stroke-red-600", "animate-blink");
+
+                // Add new color classes based on status
+                switch (newStatus) {
+                    case "available":
+                        rect.classList.add("fill-green-100", "stroke-green-500");
+                        spotElement.classList.remove("cursor-not-allowed");
+                        spotElement.classList.add("cursor-pointer");
+                        break;
+                    case "reserved":
+                        rect.classList.add("fill-yellow-100", "stroke-yellow-500");
+                        spotElement.classList.remove("cursor-pointer");
+                        spotElement.classList.add("cursor-not-allowed");
+                        break;
+                    case "occupied":
+                        rect.classList.add("fill-red-100", "stroke-red-500");
+                        spotElement.classList.remove("cursor-pointer");
+                        spotElement.classList.add("cursor-not-allowed");
+
+                        // Add car icon
+                        const text = spotElement.querySelector('text');
+                        if (text && !spotElement.querySelector('text:nth-child(3)')) {
+                            const carText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                            carText.setAttribute("x", text.getAttribute("x"));
+                            carText.setAttribute("y", parseFloat(text.getAttribute("y")) + 20);
+                            carText.setAttribute("text-anchor", "middle");
+                            carText.setAttribute("font-size", "20");
+                            carText.classList.add("pointer-events-none");
+                            carText.textContent = "🚗";
+                            spotElement.appendChild(carText);
+                        }
+                        break;
+                    case "illegal":
+                        rect.classList.add("fill-red-200", "stroke-red-600", "animate-blink");
+                        spotElement.classList.remove("cursor-pointer");
+                        spotElement.classList.add("cursor-not-allowed");
+                        break;
+                }
+
+                // Update the spots array
+                const spotIndex = spots.findIndex(s => s.id === spotId);
+                if (spotIndex !== -1) {
+                    spots[spotIndex].status = newStatus;
+                }
+            }
+
+            function startTimer() {
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                }
+
+                timerInterval = setInterval(() => {
+                    reservationTimeLeft--;
+
+                    if (reservationTimeLeft <= 0) {
+                        handleReservationTimeout();
+                        return;
+                    }
+
+                    const mins = Math.floor(reservationTimeLeft / 60);
+                    const secs = reservationTimeLeft % 60;
+                    timerValue.textContent = `${mins}:${secs.toString().padStart(2, "0")}`;
+                }, 1000);
+            }
+
+            function handleReservationTimeout() {
+                if (selectedSpot && selectedSpot.status === "reserved") {
+                    // Cancel navigation if active
+                    isNavigating = false;
+                    navigatingIndicator.classList.add("hidden");
+
+                    // Release the spot
+                    updateSpotStatus(selectedSpot.id, "available");
+                    selectedSpot = null;
+
+                    // Hide UI elements
+                    timerDisplay.classList.add("hidden");
+                    navigateButton.classList.add("hidden");
+
+                    // Clear timer
+                    if (timerInterval) {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                    }
+
+                    // Show timeout dialog
+                    showTimeoutDialog();
+                }
+            }
+
+            navigateBtn.addEventListener('click', function () {
+                if (!selectedSpot) return;
+
+                isNavigating = true;
+                navigatingIndicator.classList.remove("hidden");
+                navigatingSpotId.textContent = selectedSpot.id;
+                navigateButton.classList.add("hidden");
+                timerDisplay.classList.add("hidden");
+
+                // Draw navigation path
+                drawNavigationPath();
+
+                // Simulate navigation completion after 3 seconds
+                setTimeout(() => {
+                    if (!isNavigating) return; // Navigation was cancelled
+
+                    // Show arrival dialog
+                    showArrivalDialog();
+
+                    // Stop timer
+                    if (timerInterval) {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                    }
+
+                    // Update spot status from reserved to occupied
+                    updateSpotStatus(selectedSpot.id, "occupied");
+                    selectedSpot.status = "occupied";
+
+                    // Show leave spot button
+                    leaveSpotButton.classList.remove("hidden");
+                    occupiedSpotId.textContent = selectedSpot.id;
+
+                    // Hide navigating indicator
+                    navigatingIndicator.classList.add("hidden");
+                }, 3000);
+            });
+
+            leaveSpotBtn.addEventListener('click', function () {
+                if (!selectedSpot) return;
+
+                updateSpotStatus(selectedSpot.id, "available");
+                selectedSpot = null;
+
+                // Hide UI elements
+                leaveSpotButton.classList.add("hidden");
+
+                // Remove navigation path if exists
+                const path = document.getElementById('navigation-path');
+                if (path) {
+                    path.remove();
+                }
+            });
+
+            function drawNavigationPath() {
+                if (!selectedSpot) return;
+
+                const entrance = { x: 50, y: 50 };
+                const spot = selectedSpot.position;
+
+                // Create a path with some waypoints for a more realistic route
+                const midX = (entrance.x + spot.x) / 2;
+                const pathData = `M ${entrance.x} ${entrance.y} L ${midX} ${entrance.y} L ${midX} ${spot.y} L ${spot.x} ${spot.y}`;
+
+                // Remove existing path if any
+                const existingPath = document.getElementById('navigation-path');
+                if (existingPath) {
+                    existingPath.remove();
+                }
+
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute("id", "navigation-path");
+                path.setAttribute("d", pathData);
+                path.setAttribute("fill", "none");
+                path.setAttribute("stroke", "#c40018");
+                path.setAttribute("stroke-width", "4");
+                path.setAttribute("stroke-dasharray", "1000");
+                path.setAttribute("stroke-dashoffset", "1000");
+                path.setAttribute("marker-end", "url(#arrowhead)");
+                path.classList.add("animate-draw-path");
+
+                svg.appendChild(path);
+            }
+
+            function showArrivalDialog() {
+                const dialogHTML = `
+                    <div class="dialog">
+                        <div class="dialog-content">
+                            <div class="dialog-header">
+                                <div class="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-green-100">
+                                    <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                                </div>
+                                <h2 class="text-2xl font-bold text-center">You have arrived at your spot!</h2>
+                                <p class="text-center text-muted-foreground mt-2">
+                                    Spot ${selectedSpot?.id} is now marked as occupied.
+                                </p>
+                            </div>
+                            <div class="flex justify-center">
+                                <button id="close-arrival-dialog" class="btn btn-default">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.body.insertAdjacentHTML('beforeend', dialogHTML);
+
+                document.getElementById('close-arrival-dialog').addEventListener('click', function () {
+                    document.querySelector('.dialog').remove();
+                });
+            }
+
+            function showTimeoutDialog() {
+                const dialogHTML = `
+                    <div class="dialog">
+                        <div class="dialog-content">
+                            <div class="dialog-header">
+                                <div class="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-yellow-100">
+                                    <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>
+                                </div>
+                                <h2 class="text-2xl font-bold text-center">Reservation Expired</h2>
+                                <p class="text-center text-muted-foreground mt-2">
+                                    Your reservation timer has expired and the spot has been released.
+                                </p>
+                            </div>
+                            <div class="flex justify-center">
+                                <button id="close-timeout-dialog" class="btn btn-outline">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.body.insertAdjacentHTML('beforeend', dialogHTML);
+
+                document.getElementById('close-timeout-dialog').addEventListener('click', function () {
+                    document.querySelector('.dialog').remove();
+                });
+            }
+        }
+    </script>
+</body>
+
+</html>
